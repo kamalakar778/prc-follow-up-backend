@@ -1,0 +1,222 @@
+{
+  "visit_type": "In-Office",
+  "patient_info": {
+    "name": "",
+    "date_of_birth": "",
+    "date_of_evaluation": "",
+    "date_of_dictation": "",
+    "physician": "Robert Klickovich, M.D"
+  },
+  "provider_info": {
+    "provider": "",
+    "referring_physician": "",
+    "insurance": "",
+    "location": "",
+    "cma": "",
+    "room_number": ""
+  },
+  "chief_complaint": {
+    "worst_pain_location": "",
+    "other_pain_complaints": "",
+    "flare_up_location": "",
+    "post_procedure_1": {
+      "procedure": "",
+      "pain_decrease_percent": "",
+      "duration": ""
+    },
+    "post_procedure_2": {
+      "procedure": "",
+      "pain_decrease_percent": "",
+      "duration": ""
+    },
+    "current_pain_decrease_percent": ""
+  },
+  "history_of_present_illness": {
+    "pain_status": "",
+    "activity_level": "",
+    "social_relationships": "",
+    "job_performance": "",
+    "sleep_patterns": ""
+  },
+  "pain_characteristics": {
+    "temporal": "Continuous baseline pain with frequent painful exacerbations",
+    "qualitative": [
+      "Burning",
+      "Stabbing",
+      "Shooting",
+      "Touch-sensitive",
+      "Numb",
+      "Tingling",
+      "Dull",
+      "Aching",
+      "Throbbing",
+      "Sharp with movement",
+      "Non-localized",
+      "Deep",
+      "Crampy",
+      "Pressure",
+      "Squeezing"
+    ],
+    "numeric_scale": {
+      "average": "",
+      "best": "",
+      "with_meds": "",
+      "without_meds": ""
+    }
+  },
+  "social_history": {
+    "working_status": ""
+  },
+  "review_of_systems": {
+    "allergic_symptoms": {
+      "allergies_to_meds_foods": "Yes, the problem is being treated",
+      "hives_itchy_skin": "Yes, the problem is being treated",
+      "sneezing": "Yes, the problem is being treated",
+      "hay_fever": "Yes, the problem is being treated",
+      "red_itchy_eyes": "Yes, the problem is being treated"
+    },
+    "neurological_symptoms": {
+      "weakness_limbs": "Yes, the problem is being treated",
+      "sensation_limbs": "Yes, the problem is being treated",
+      "numbness_tingling": "Yes, the problem is being treated",
+      "bowel_bladder_loss": "Yes, the problem is being treated",
+      "seizures": "Yes, the problem is being treated"
+    }
+  },
+  "treatment_compliance": {
+    "u_tox_pill_count_ok": "",
+    "kasper_report_ok": "",
+    "physical_therapy": {
+      "at_home": "",
+      "sessions_done": ""
+    },
+    "imaging_completed": "",
+    "weight_loss_program": {
+      "change": "",
+      "bmi": "",
+      "weight_status": ""
+    },
+    "counselor_participation": "",
+    "comments": ""
+  },
+  "physical_exam": {
+    "vitals": {
+      "bp": "",
+      "height_ft": "",
+      "height_in": "",
+      "weight": "",
+      "bmi": ""
+    },
+    "general_appearance": "Well groomed and content",
+    "orientation": "Correct",
+    "mood_affect": "Appropriate",
+    "gait": "Within normal limits and with no assistive device",
+    "station": "Within normal limits and steady",
+    "ankle_swelling": "Not present",
+    "lymph_nodes": "Not present",
+    "coordination_balance_romberg": "Negative",
+    "motor_function": "No stated and observed change since last visit",
+    "exam_date": "",
+    "pre_existing_conditions": "",
+    "cc": "",
+    "palpation": {
+      "muscle_tenderness": "",
+      "joint_tenderness": ""
+    },
+    "rom": {
+      "gross_movement_decrease": ""
+    },
+    "comments": "",
+    "sensory_changes": {
+      "type": "",
+      "location": []
+    },
+    "established_findings": {
+      "positive_findings": "",
+      "other": "",
+      "rom_status": ""
+    },
+    "regional_exams": {
+      "cervical": {
+        "paraspinal_tenderness": "",
+        "traps_levator_tenderness": "",
+        "facet_loading": "",
+        "facet_levels": "",
+        "pain_with_extension": ""
+      },
+      "thoracic": {
+        "paraspinal_tenderness": "",
+        "trapezius_rhomboid_tenderness": "",
+        "facet_loading": "",
+        "facet_levels": "",
+        "pain_with_rotation": ""
+      },
+      "lumbar": {
+        "paraspinal_tenderness": "",
+        "gluteal_tenderness": "",
+        "facet_loading": "",
+        "facet_levels": "",
+        "quadrant_test": "",
+        "slump_slr": "",
+        "patrick": "",
+        "sij_tenderness": "",
+        "thigh_thrust": "",
+        "gaenslen": ""
+      },
+      "shoulder": {
+        "apley_scratch": "",
+        "crepitus": "",
+        "crossover_test": "",
+        "rom": "",
+        "subacromial_tenderness": "",
+        "neer_impingement": "",
+        "drop_arm_test": "",
+        "empty_can_test": ""
+      },
+      "hip": {
+        "squat_test": "",
+        "trochanteric_bursa_tenderness": "",
+        "rom": "",
+        "patrick": "",
+        "fadir": ""
+      },
+      "knee": {
+        "peri_patella_tenderness": "",
+        "joint_line_tenderness": "",
+        "rom": "",
+        "drawer_test": "",
+        "valgus_varus": "",
+        "mcmurray": ""
+      }
+    }
+  },
+  "assessment": [
+    "CERVICAL",
+    "Facet Arthropathy – M46.92",
+    "Spondylosis-Cervical – M47.812",
+    "Cervicalgia – M54.2",
+    "DJD-Cervical– M50.30",
+    "UPPER EXTREMITY",
+    "Shoulder-Right Bursitis – M75.51",
+    "Shoulder-Left Bursitis – M75.52",
+    "... (Continue full list as needed)"
+  ],
+  "follow_up_plan": {
+    "non_compliance_severity": "",
+    "action_taken": "",
+    "review_items": [
+      "U-Tox/ORT",
+      "KASPER Report",
+      "Medication list",
+      "Nursing/chart notes",
+      "Treatment goals",
+      "Plan",
+      "U-Tox log"
+    ],
+    "recommendations": [
+      "Engage physical therapy with evaluation and home-based exercises",
+      "Learn McKenzie stabilization exercises if spinal column problems exist",
+      "Participate in weight loss program if recommended"
+    ]
+  }
+}
