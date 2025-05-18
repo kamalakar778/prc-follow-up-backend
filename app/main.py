@@ -54,6 +54,6 @@ async def generate_doc(request: Request):
 # Print backend URL on startup
 if __name__ == "__main__":
     host = "127.0.0.1"
-    port = 5000
+    port = 8000
     print(f"Starting FastAPI server at http://{host}:{port}")
     uvicorn.run("main:app", host=host, port=port, reload=True)
