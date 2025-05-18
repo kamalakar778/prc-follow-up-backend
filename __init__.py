@@ -1,7 +1,5 @@
-from flask import Flask
-from app.routes.document_routes import document_bp
+import uvicorn
+from backend import app  # import FastAPI app from your package
 
-def create_app():
-    app = Flask(__name__)
-    app.register_blueprint(document_bp)
-    return app
+if __name__ == "__main__":
+    uvicorn.run("backend:app", host="127.0.0.1", port=8000, reload=True)
