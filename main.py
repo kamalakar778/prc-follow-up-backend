@@ -45,21 +45,46 @@ def generate_docx_from_data(data: dict) -> io.BytesIO:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating DOCX: {str(e)}")
 
+# @app.post("/generate-doc")
+# async def generate_doc(request: Request):
+#     data = await request.json()
+#     print("Data received for DOCX generation:", data)
+#     file_stream = generate_docx_from_data(data)
+#     file_name = data.get("fileName") or data.get("patientName", "follow_up_visit")
+#     headers = {
+#         'Content-Disposition': f'attachment; filename="{file_name}.docx"'
+#     }
+#     return StreamingResponse(
+#         file_stream,
+#         media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+#         headers=headers
+#     )
+
 @app.post("/generate-doc")
 async def generate_doc(request: Request):
     data = await request.json()
     print("Data received for DOCX generation:", data)
+
+    # 🔍 Log fileName and patientName
+    print("Received fileName:", data.get("fileName"))
+    print("Received patientName:", data.get("patientName"))
+
     file_stream = generate_docx_from_data(data)
-    file_name = data.get("fileName", "follow_up_visit")
+
+    file_name = data.get("fileName") or data.get("patientName", "follow_up")
+
+    print("Final filename used:", file_name)
+
     headers = {
+        # 'Content-Disposition': f'attachment; filename="TEST_FILENAME.docx"'
         'Content-Disposition': f'attachment; filename="{file_name}.docx"'
     }
+
     return StreamingResponse(
         file_stream,
         media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         headers=headers
     )
-
 
 # Print backend URL on startup
 if __name__ == "__main__":
