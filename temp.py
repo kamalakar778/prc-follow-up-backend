@@ -29,8 +29,6 @@ app.add_middleware(
 
 
 
-import traceback
-
 def generate_docx_from_data(data: dict) -> io.BytesIO:
     try:
         # Provide default empty list if missing
@@ -40,22 +38,14 @@ def generate_docx_from_data(data: dict) -> io.BytesIO:
         template_path = os.path.join('templates', 'FU_TEMPLATE_Klickovich.docx')
         if not os.path.exists(template_path):
             raise HTTPException(status_code=500, detail="Template file not found.")
-
-        print("[INFO] Loading template from:", template_path)
         doc = DocxTemplate(template_path)
-
-        print("[INFO] Rendering template with data keys:", list(data.keys()))
-        doc.render(data)  # <-- This is where most crashes occur
-
+        doc.render(data)
         byte_io = io.BytesIO()
         doc.save(byte_io)
         byte_io.seek(0)
         return byte_io
     except Exception as e:
-        print("[ERROR] Failed to generate DOCX")
-        traceback.print_exc()  # 🔍 Print full traceback
         raise HTTPException(status_code=500, detail=f"Error generating DOCX: {str(e)}")
-
 
 # @app.post("/generate-doc")
 # async def generate_doc(request: Request):
