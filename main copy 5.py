@@ -9,14 +9,12 @@ import os
 import json
 import traceback
 import subprocess
-import string
-
-# Optional: comment this in only when upload works
 # from selenium_uploader import upload_pdf_to_portal
 
-# --- App Setup ---
+# Initialize app
 app = FastAPI()
 
+# CORS for frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -25,7 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Constants & Directories ---
+# Constants
 PHYSICIAN_FILE = "data/physicians.json"
 TEMPLATE_FILE = "templates/FU_TEMPLATE_Klickovich.docx"
 PRC_FOLDER = "PRC_Files_Folder"
@@ -33,12 +31,12 @@ os.makedirs("data", exist_ok=True)
 os.makedirs("templates", exist_ok=True)
 os.makedirs(PRC_FOLDER, exist_ok=True)
 
-# --- Ensure Physicians File Exists ---
+# Ensure physicians.json exists
 if not os.path.exists(PHYSICIAN_FILE):
     with open(PHYSICIAN_FILE, "w") as f:
         json.dump([], f)
 
-# --- Load/Save Helpers ---
+# Load/save physicians
 def load_physicians():
     with open(PHYSICIAN_FILE, "r") as f:
         return json.load(f)
@@ -47,11 +45,11 @@ def save_physicians(physicians):
     with open(PHYSICIAN_FILE, "w") as f:
         json.dump(physicians, f, indent=2)
 
-# --- Model ---
+# Model
 class Physician(BaseModel):
     name: str
 
-# --- Physician Routes ---
+# Routes: Get/Add physicians
 @app.get("/physicians")
 def get_physicians():
     return load_physicians()
@@ -70,36 +68,30 @@ def add_physician(physician: Physician):
     save_physicians(physicians)
     return {"message": "Physician added", "name": name}
 
-# --- Document Generation ---
+# Document generation (DOCX + PDF)
 def generate_docx_from_data(data: dict) -> tuple[io.BytesIO, str, str]:
     try:
-        print("➡️ Starting document generation...")
+        if 'docSections' not in data:
+            data['docSections'] = []
 
         if not os.path.exists(TEMPLATE_FILE):
             raise HTTPException(status_code=500, detail="Template file not found.")
 
         doc = DocxTemplate(TEMPLATE_FILE)
-        data.setdefault('docSections', [])
         doc.render(data)
 
         file_name = data.get("fileName") or data.get("patientName", "follow_up")
-
-        allowed_punctuation = "-_.,()[]"
-        safe_file_name = "".join(c for c in file_name if c.isalnum() or c in string.whitespace or c in allowed_punctuation).strip()
-
-        # safe_file_name = "".join(c for c in file_name if c.isalnum() or c in (' ', '_')).rstrip()
+        safe_file_name = "".join(c for c in file_name if c.isalnum() or c in (' ', '_')).rstrip()
 
         docx_path = os.path.join(PRC_FOLDER, f"{safe_file_name}.docx")
         pdf_path = os.path.join(PRC_FOLDER, f"{safe_file_name}.pdf")
 
         doc.save(docx_path)
-        print(f"✅ DOCX saved: {docx_path}")
 
         try:
             convert(docx_path, pdf_path)
-            print(f"✅ PDF converted: {pdf_path}")
         except Exception as e:
-            print("⚠️ PDF conversion failed:", e)
+            print("[PDF ERROR] Could not convert DOCX to PDF:", e)
 
         byte_io = io.BytesIO()
         with open(docx_path, "rb") as f:
@@ -109,47 +101,27 @@ def generate_docx_from_data(data: dict) -> tuple[io.BytesIO, str, str]:
         return byte_io, pdf_path, data.get("dateOfEvaluation", "")
 
     except Exception as e:
-        print("[❌ ERROR] Failed to generate DOCX/PDF")
+        print("[ERROR] Failed to generate DOCX/PDF")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error generating DOCX/PDF: {str(e)}")
 
-@app.post("/add-physician")
-async def add_physician(physician: Physician):
-    # Load existing list
-    if os.path.exists(PHYSICIANS_FILE):
-        with open(PHYSICIANS_FILE, "r") as f:
-            data = json.load(f)
-    else:
-        data = []
-
-    # Append new physician
-    new_entry = {"name": physician.name.strip()}
-    if new_entry not in data:
-        data.append(new_entry)
-
-        # Save updated list
-        with open(PHYSICIANS_FILE, "w") as f:
-            json.dump(data, f, indent=2)
-        return {"message": "Physician added."}
-    else:
-        return {"message": "Physician already exists."}
-    
-# --- /generate-doc Endpoint ---
+# Endpoint: Generate and optionally upload document
 @app.post("/generate-doc")
 async def generate_doc(request: Request):
-    print("🔔 /generate-doc triggered")
     data = await request.json()
     print("📥 Data received:", data)
 
     file_stream, pdf_path, date_of_eval = generate_docx_from_data(data)
     file_name = data.get("fileName") or data.get("patientName", "follow_up")
 
-    # Optional PDF upload
     if pdf_path and os.path.exists(pdf_path):
         try:
             title = f"TRANSCRIBED DATA FOLLOW UP VISIT NOTE ON {date_of_eval}"
-            print(f"📤 Would upload PDF with title: {title}")
-            # upload_pdf_to_portal(file_path=pdf_path, document_title=title, notes=title)
+            upload_pdf_to_portal(
+                file_path=pdf_path,
+                document_title=title,
+                notes=title
+            )
         except Exception as e:
             print("⚠️ Upload failed:", e)
 
@@ -163,7 +135,7 @@ async def generate_doc(request: Request):
         headers=headers
     )
 
-# --- /upload-documents Endpoint ---
+# Endpoint: Trigger upload automation separately
 @app.post("/upload-documents")
 async def upload_documents(request: Request):
     data = await request.json()
@@ -179,12 +151,12 @@ async def upload_documents(request: Request):
         print("❌ Failed to start upload_automation.py:", e)
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-# --- Health Check ---
+# Health check
 @app.get("/")
 def read_root():
     return {"message": "Hello from FastAPI"}
 
-# --- Dev Run ---
+# Run server
 if __name__ == "__main__":
     print("🚀 Starting server at http://127.0.0.1:8000")
     import uvicorn

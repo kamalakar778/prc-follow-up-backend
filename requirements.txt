@@ -5,3 +5,8 @@ httpx
 python-multipart
 pillow
 docxtpl
+python-docx
+docx2pdf
+pywin32
+selenium
+pyautogui
