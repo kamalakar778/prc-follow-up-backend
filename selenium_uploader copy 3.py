@@ -1,13 +1,10 @@
-import sys
+# selenium_uploader.py
+
 import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
-
-# Arguments from FastAPI
-file_name = sys.argv[1]      # just the name (without .pdf)
-base_path = sys.argv[2]      # full path chosen in backend (path1 or path2)
 
 
 def upload_document(driver, title, file_path, notes):
@@ -42,27 +39,3 @@ def upload_document(driver, title, file_path, notes):
     except Exception as e:
         print(f"❌ Upload failed: {e}")
         raise
-
-
-def main():
-    # Always expect a .pdf
-    file_path = os.path.join(base_path, f"{file_name}.pdf")
-
-    if not os.path.exists(file_path):
-        print(f"❌ File not found: {file_path}")
-        return
-
-    title = f"PDF Upload: {file_name}"
-    notes = f"Uploaded from {base_path}"
-
-    # ⚠️ Update your chromedriver path
-    driver = webdriver.Chrome(executable_path="/path/to/chromedriver")
-
-    # Perform upload
-    upload_document(driver, title, file_path, notes)
-
-    driver.quit()
-
-
-if __name__ == "__main__":
-    main()

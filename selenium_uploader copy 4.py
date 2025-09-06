@@ -1,14 +1,10 @@
-import sys
+# selenium_uploader.py
+
 import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
-
-# Arguments from FastAPI
-file_name = sys.argv[1]      # just the name (without .pdf)
-base_path = sys.argv[2]      # full path chosen in backend (path1 or path2)
-
 
 def upload_document(driver, title, file_path, notes):
     try:
@@ -43,26 +39,27 @@ def upload_document(driver, title, file_path, notes):
         print(f"❌ Upload failed: {e}")
         raise
 
+def upload_pdfs(driver, file_name, path1, path2):
+    try:
+        # Construct file paths for path1 and path2
+        file_path1 = os.path.join(path1, f"{file_name}.pdf")
+        file_path2 = os.path.join(path2, f"{file_name}.pdf")
 
-def main():
-    # Always expect a .pdf
-    file_path = os.path.join(base_path, f"{file_name}.pdf")
+        # Check if both files exist
+        if os.path.exists(file_path1) and os.path.exists(file_path2):
+            title = f"PDF Upload: {file_name}"
+            notes = f"Uploaded from {path1} and {path2}"
 
-    if not os.path.exists(file_path):
-        print(f"❌ File not found: {file_path}")
-        return
+            # Upload both files
+            print("Uploading PDF from path1...")
+            upload_document(driver, title, file_path1, notes)
 
-    title = f"PDF Upload: {file_name}"
-    notes = f"Uploaded from {base_path}"
+            print("Uploading PDF from path2...")
+            upload_document(driver, title, file_path2, notes)
 
-    # ⚠️ Update your chromedriver path
-    driver = webdriver.Chrome(executable_path="/path/to/chromedriver")
+        else:
+            print("❌ One or both files do not exist.")
 
-    # Perform upload
-    upload_document(driver, title, file_path, notes)
-
-    driver.quit()
-
-
-if __name__ == "__main__":
-    main()
+    except Exception as e:
+        print(f"❌ Error during upload: {e}")
+        raise

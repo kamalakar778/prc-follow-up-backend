@@ -1,22 +1,22 @@
+import os
+import json
+import io
+import string
+import sys
+import traceback
+import subprocess
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 from docxtpl import DocxTemplate
 from docx2pdf import convert
-import io
-import os
-import json
-import traceback
-import subprocess
-import string
-
-# Optional: comment this in only when upload works
-# from selenium_uploader import upload_pdf_to_portal
+from fastapi import UploadFile, File
 
 # --- App Setup ---
 app = FastAPI()
 
+# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -28,10 +28,17 @@ app.add_middleware(
 # --- Constants & Directories ---
 PHYSICIAN_FILE = "data/physicians.json"
 TEMPLATE_FILE = "templates/FU_TEMPLATE_Klickovich.docx"
-PRC_FOLDER = "PRC_Files_Folder"
+
+# User-specified path for PRC_FOLDER (can be changed directly)
+PRC_FOLDER = "F:/PRC 2025/SEPT-2025/09-06-2025"  # Example path
+PDF_FOLDER = os.path.join(PRC_FOLDER, "PDF")
+
+# Ensure PDF folder exists
+os.makedirs(PDF_FOLDER, exist_ok=True)
 os.makedirs("data", exist_ok=True)
 os.makedirs("templates", exist_ok=True)
-os.makedirs(PRC_FOLDER, exist_ok=True)
+
+print(f"✅ PDF folder created at: {PDF_FOLDER}")
 
 # --- Ensure Physicians File Exists ---
 if not os.path.exists(PHYSICIAN_FILE):
@@ -70,7 +77,10 @@ def add_physician(physician: Physician):
     save_physicians(physicians)
     return {"message": "Physician added", "name": name}
 
-# --- Document Generation ---
+# --- Global Dictionary to Store fileName ---
+file_name_storage = {}
+
+# --- Generate DOCX and PDF ---
 def generate_docx_from_data(data: dict) -> tuple[io.BytesIO, str, str]:
     try:
         print("➡️ Starting document generation...")
@@ -84,13 +94,15 @@ def generate_docx_from_data(data: dict) -> tuple[io.BytesIO, str, str]:
 
         file_name = data.get("fileName") or data.get("patientName", "follow_up")
 
+        # Clear previous fileName value and store the new one
+        file_name_storage.clear()  # Clear existing stored fileName
+        file_name_storage["last_used"] = file_name  # Store the new fileName
+
         allowed_punctuation = "-_.,()[]"
         safe_file_name = "".join(c for c in file_name if c.isalnum() or c in string.whitespace or c in allowed_punctuation).strip()
 
-        # safe_file_name = "".join(c for c in file_name if c.isalnum() or c in (' ', '_')).rstrip()
-
-        docx_path = os.path.join(PRC_FOLDER, f"{safe_file_name}.docx")
-        pdf_path = os.path.join(PRC_FOLDER, f"{safe_file_name}.pdf")
+        docx_path = os.path.join(PDF_FOLDER, f"{safe_file_name}.docx")
+        pdf_path = os.path.join(PDF_FOLDER, f"{safe_file_name}.pdf")
 
         doc.save(docx_path)
         print(f"✅ DOCX saved: {docx_path}")
@@ -113,27 +125,6 @@ def generate_docx_from_data(data: dict) -> tuple[io.BytesIO, str, str]:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error generating DOCX/PDF: {str(e)}")
 
-@app.post("/add-physician")
-async def add_physician(physician: Physician):
-    # Load existing list
-    if os.path.exists(PHYSICIANS_FILE):
-        with open(PHYSICIANS_FILE, "r") as f:
-            data = json.load(f)
-    else:
-        data = []
-
-    # Append new physician
-    new_entry = {"name": physician.name.strip()}
-    if new_entry not in data:
-        data.append(new_entry)
-
-        # Save updated list
-        with open(PHYSICIANS_FILE, "w") as f:
-            json.dump(data, f, indent=2)
-        return {"message": "Physician added."}
-    else:
-        return {"message": "Physician already exists."}
-    
 # --- /generate-doc Endpoint ---
 @app.post("/generate-doc")
 async def generate_doc(request: Request):
@@ -141,6 +132,7 @@ async def generate_doc(request: Request):
     data = await request.json()
     print("📥 Data received:", data)
 
+    # Generate DOCX and PDF
     file_stream, pdf_path, date_of_eval = generate_docx_from_data(data)
     file_name = data.get("fileName") or data.get("patientName", "follow_up")
 
@@ -164,20 +156,59 @@ async def generate_doc(request: Request):
     )
 
 # --- /upload-documents Endpoint ---
-@app.post("/upload-documents")
-async def upload_documents(request: Request):
-    data = await request.json()
-    file_name = data.get("fileName", "").strip()
-    if not file_name:
-        raise HTTPException(status_code=400, detail="fileName is required.")
+class FileUploadRequest(BaseModel):
+    fileName: str
+    path: str   # "path1" or "path2"
 
+@app.post("/upload-documents")
+async def upload_documents(request: FileUploadRequest):
     try:
-        print(f"📤 Triggering upload for file: {file_name}")
-        subprocess.Popen(["python", "upload_automation.py", file_name])
-        return {"message": f"Upload triggered for '{file_name}'."}
+        file_name = request.fileName.strip()
+        path_choice = request.path
+
+        # Clear and store the new fileName for upload
+        file_name_storage.clear()  # Clear existing stored fileName
+        file_name_storage["last_uploaded"] = file_name  # Store the new fileName
+
+        # Define paths
+        path1 = os.path.join(PDF_FOLDER, "path1")
+        path2 = os.path.join(PDF_FOLDER, "path2")
+
+        # Ensure directories exist
+        os.makedirs(path1, exist_ok=True)
+        os.makedirs(path2, exist_ok=True)
+
+        # Choose correct folder
+        if path_choice == "path1":
+            base_path = path1
+        elif path_choice == "path2":
+            base_path = path2
+        else:
+            raise HTTPException(status_code=400, detail=f"Invalid path: {path_choice}")
+
+        file_path = os.path.join(base_path, file_name)
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
+
+        print(f"📤 Triggering upload for file: {file_name} from {path_choice}")
+
+        # Run selenium uploader with single path
+        subprocess.Popen([sys.executable, "selenium_uploader.py", file_name, base_path])
+
+        return {"message": f"Upload triggered for '{file_name}' from {path_choice}."}
+
+    except HTTPException as e:
+        print(f"❌ HTTP Error: {e.detail}")
+        return JSONResponse(status_code=e.status_code, content={"error": e.detail})
+
     except Exception as e:
-        print("❌ Failed to start upload_automation.py:", e)
+        print(f"❌ Failed to start selenium_uploader.py: {e}")
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+# --- /last-file-name Endpoint (For debugging or use cases) ---
+@app.get("/last-file-name")
+def get_last_file_name():
+    return {"last_used_file": file_name_storage.get("last_used"), "last_uploaded_file": file_name_storage.get("last_uploaded")}
 
 # --- Health Check ---
 @app.get("/")
