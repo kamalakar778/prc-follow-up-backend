@@ -30,7 +30,7 @@ PHYSICIAN_FILE = "data/physicians.json"
 TEMPLATE_FILE = "templates/FU_TEMPLATE_Klickovich.docx"
 
 # User-specified path for PRC_FOLDER (can be changed directly)
-PRC_FOLDER = "F:/PRC 2025/SEPT-2025/09-06-2025"  # Example path
+PRC_FOLDER = "F:/PRC 2025/DEC-2025/12-06-2025"  # Example path
 PDF_FOLDER = os.path.join(PRC_FOLDER, "PDF")
 
 # Ensure PDF folder exists

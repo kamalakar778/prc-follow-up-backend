@@ -11,8 +11,7 @@ from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 from docxtpl import DocxTemplate
 from docx2pdf import convert
-from fastapi import FastAPI, UploadFile, File, Form
-
+from fastapi import UploadFile, File
 
 # --- App Setup ---
 app = FastAPI()
@@ -31,7 +30,7 @@ PHYSICIAN_FILE = "data/physicians.json"
 TEMPLATE_FILE = "templates/FU_TEMPLATE_Klickovich.docx"
 
 # User-specified path for PRC_FOLDER (can be changed directly)
-PRC_FOLDER = "F:/PRC 2025/AUGUST-2025/08-27-2025"  # Example path
+PRC_FOLDER = "F:/PRC 2025/SEPT-2025/09-12-2025"  # Example path
 PDF_FOLDER = os.path.join(PRC_FOLDER, "PDF")
 
 # Ensure PDF folder exists
@@ -78,6 +77,9 @@ def add_physician(physician: Physician):
     save_physicians(physicians)
     return {"message": "Physician added", "name": name}
 
+# --- Global Dictionary to Store fileName ---
+file_name_storage = {}
+
 # --- Generate DOCX and PDF ---
 def generate_docx_from_data(data: dict) -> tuple[io.BytesIO, str, str]:
     try:
@@ -91,6 +93,10 @@ def generate_docx_from_data(data: dict) -> tuple[io.BytesIO, str, str]:
         doc.render(data)
 
         file_name = data.get("fileName") or data.get("patientName", "follow_up")
+
+        # Clear previous fileName value and store the new one
+        file_name_storage.clear()  # Clear existing stored fileName
+        file_name_storage["last_used"] = file_name  # Store the new fileName
 
         allowed_punctuation = "-_.,()[]"
         safe_file_name = "".join(c for c in file_name if c.isalnum() or c in string.whitespace or c in allowed_punctuation).strip()
@@ -126,6 +132,7 @@ async def generate_doc(request: Request):
     data = await request.json()
     print("📥 Data received:", data)
 
+    # Generate DOCX and PDF
     file_stream, pdf_path, date_of_eval = generate_docx_from_data(data)
     file_name = data.get("fileName") or data.get("patientName", "follow_up")
 
@@ -153,12 +160,15 @@ class FileUploadRequest(BaseModel):
     fileName: str
     path: str   # "path1" or "path2"
 
-
 @app.post("/upload-documents")
 async def upload_documents(request: FileUploadRequest):
     try:
         file_name = request.fileName.strip()
         path_choice = request.path
+
+        # Clear and store the new fileName for upload
+        file_name_storage.clear()  # Clear existing stored fileName
+        file_name_storage["last_uploaded"] = file_name  # Store the new fileName
 
         # Define paths
         path1 = os.path.join(PDF_FOLDER, "path1")
@@ -194,6 +204,11 @@ async def upload_documents(request: FileUploadRequest):
     except Exception as e:
         print(f"❌ Failed to start selenium_uploader.py: {e}")
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+# --- /last-file-name Endpoint (For debugging or use cases) ---
+@app.get("/last-file-name")
+def get_last_file_name():
+    return {"last_used_file": file_name_storage.get("last_used"), "last_uploaded_file": file_name_storage.get("last_uploaded")}
 
 # --- Health Check ---
 @app.get("/")

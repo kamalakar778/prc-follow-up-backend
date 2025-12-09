@@ -10,3 +10,4 @@ docx2pdf
 pywin32
 selenium
 pyautogui
+django
