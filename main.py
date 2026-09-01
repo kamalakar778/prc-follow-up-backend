@@ -30,7 +30,7 @@ PHYSICIAN_FILE = "data/physicians.json"
 TEMPLATE_FILE = "templates/FU_TEMPLATE_Klickovich.docx"
 
 # User-specified path for PRC_FOLDER (can be changed directly)
-PRC_FOLDER = "F:/PRC 2025/DEC-2025/12-06-2025"  # Example path
+PRC_FOLDER = "G:/Drive F/PRC 2026/AUG-2026/09-01-2026"  # Example path
 PDF_FOLDER = os.path.join(PRC_FOLDER, "PDF")
 
 # Ensure PDF folder exists
@@ -217,6 +217,6 @@ def read_root():
 
 # --- Dev Run ---
 if __name__ == "__main__":
-    print("🚀 Starting server at http://127.0.0.1:8000")
+    print("🚀 Starting server at http://127.0.0.1:5000")
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=5000, reload=True)

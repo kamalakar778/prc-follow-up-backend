@@ -155,6 +155,6 @@ def read_root():
 # Run app with: python main.py
 if __name__ == "__main__":
     host = "127.0.0.1"
-    port = 8000
+    port = 5000
     print(f"🚀 Server running at http://{host}:{port}")
     uvicorn.run("main:app", host=host, port=port, reload=True)
